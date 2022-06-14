@@ -1,35 +1,43 @@
-local ServiceClass = {}
-ServiceClass.__index = ServiceClass
-ServiceClass.type = 'ServiceClass'
+local Service = {}
 
-function ServiceClass.new() 
-    return setmetatable({}, ServiceClass)
+local _____getService = game and game.GetService
+local _____findService = game and game.FindService
+
+function Service.new()
+	local nService = {}
+	nService.Services = {}
+	return setmetatable(nService, {
+		__index = function(_, K)
+			if not nService.Services[K] then
+				nService.Services[K] = _____getService(game, K)
+				if nService.Services[K] then
+					return nService.Service[K]
+				end
+			else
+				if nService.Services[K] then
+					return nService.Service[K]
+				end
+			end
+			return Service[K]
+		end,
+		__call = function(_, FuncName, Name)
+			if FuncName == "get" then
+				return Service[FuncName](nService, Name)
+			else
+				if FuncName == "find" then
+					return Service[FuncName](nService, Name)
+				end
+			end
+		end
+	})
 end
 
-function ServiceClass:getService(name)
-    if (self and self.type == 'ServiceClass') then 
-        return Game['GetService'](Game, name)
-    else
-        return error('not a service class',2) 
-    end
+function Service:get(name)
+	return self.Services[name] or self[name]
 end
 
-function ServiceClass:findService(name)
-    if (self and self.type == 'ServiceClass') then 
-        return Game['FindService'](Game, name)
-    else
-        return error('not a service class',2) 
-    end
+function Service:find(name)
+	return self.Services[name] or _____findService(game, name)
 end
 
-ServiceClass.__call = function(self, func, name) 
-    if (func == 'get') then
-        return ServiceClass.new():getService(name)
-    elseif (func == 'find') then
-        return ServiceClass.new():findService(name)
-    else
-        return error('unknown service operation',2) 
-    end
-end
-
-return ServiceClass
+return Service
